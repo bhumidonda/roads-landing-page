@@ -1,15 +1,15 @@
 pipeline {
     agent any
-
+    
     environment {
         DOCKER_IMAGE = 'dondabhumi/page'
     }
-
+    
     stages {
-        stage("Clone Repository") {
+        stage("Code Clone") {
             steps {
                 echo "Cloning repository..."
-                git url: 'https://github.com/bhumidonda/node.git', branch: 'main'
+                git url: "https://github.com/bhumidonda/node.git", branch: "main"
             }
         }
 
@@ -20,27 +20,25 @@ pipeline {
             }
         }
 
-        stage("Push to DockerHub") {
+        stage("Push To DockerHub") {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: "DOCKER_CREDENTIALS_ID", 
-                    usernameVariable: "DOCKER_USER", 
-                    passwordVariable: "DOCKER_PASS"
+                    credentialsId: "dockerHubCreds", 
+                    usernameVariable: "dockerHubUser", 
+                    passwordVariable: "dockerHubPass"
                 )]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh "docker tag $DOCKER_IMAGE:latest $DOCKER_USER/$DOCKER_IMAGE:latest"
-                    sh "docker push $DOCKER_USER/$DOCKER_IMAGE:latest"
+                    sh 'echo $dockerHubPass | docker login -u $dockerHubUser --password-stdin'
+                    sh "docker image tag $DOCKER_IMAGE:latest $dockerHubUser/$DOCKER_IMAGE:latest"
+                    sh "docker push $dockerHubUser/$DOCKER_IMAGE:latest"
                 }
             }
         }
 
-        stage("Deploy Container") {
+        stage("Deploy") {
             steps {
-                echo "Stopping existing container..."
-                sh "docker stop nextjs-app || true"
-                sh "docker rm nextjs-app || true"
-                echo "Running new container..."
-                sh "docker run -d -p 3000:3000 --name nextjs-app $DOCKER_IMAGE:latest"
+                echo "Deploying application..."
+                sh "docker compose down || true"
+                sh "docker compose up -d --build"
             }
         }
     }
