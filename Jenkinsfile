@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'dondabhumi/page'
+        DOCKER_IMAGE = 'textgrab_ocr-ocr_app-1'
     }
 
     stages {
@@ -23,7 +23,7 @@ pipeline {
                 sh "docker pull $DOCKER_IMAGE:latest"
                 sh "docker stop nextjs-app || true"
                 sh "docker rm nextjs-app || true"
-                sh "docker run -d -p 3000:3000 --name nextjs-app $DOCKER_IMAGE:latest"
+                sh "docker run -d -p 8800:8800 --name nextjs-app $DOCKER_IMAGE:latest"
             }
         }
     }
